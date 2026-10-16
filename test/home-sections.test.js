@@ -19,6 +19,10 @@ test("parses the three requested homepage sections", () => {
   });
 
   assert.equal(data.source, "https://anisuge.tv/home");
+  assert.equal(data.slider[0].id, "one-piece-odmau");
+  assert.equal(data.slider[0].title, "One Piece");
+  assert.equal(data.slider[0].url, "https://anisuge.tv/watch/one-piece-odmau");
+  assert.equal(data.slider[0].image, "https://image.tmdb.org/t/p/original/a6ptrTUH1c5OdWanjyYtAkOuYD0.jpg");
   assert.equal(data.recentlyAdded[0].id, "one-room-ta-nqdct");
   assert.equal(data.recentlyAdded[0].name, "One-Room TA");
   assert.equal(data.justCompleted[0].id, "mobile-suit-gundam-hathaway-the-sorcery-of-nymph-circe-cc5ie");
@@ -29,6 +33,26 @@ test("parses the three requested homepage sections", () => {
   assert.ok(Array.isArray(data.mostViewed.month));
   assert.ok(data.recentlyAdded.length > 0);
   assert.ok(data.justCompleted.length > 0);
+});
+
+test("parses slider ids from anime URLs", () => {
+  const data = parseHomeSections({
+    baseUrl: "https://anisuge.tv/home",
+    html: `
+      <div id="slider">
+        <a class="swiper-slide" href="/anime/dragon-ball-super-beerus-opagc"
+          title="Dragon Ball Super: Beerus"
+          style="background-image: url('https://example.com/beerus.jpg');"></a>
+      </div>
+    `,
+  });
+
+  assert.deepEqual(data.slider, [{
+    id: "dragon-ball-super-beerus-opagc",
+    title: "Dragon Ball Super: Beerus",
+    url: "https://anisuge.tv/anime/dragon-ball-super-beerus-opagc",
+    image: "https://example.com/beerus.jpg",
+  }]);
 });
 
 test("parses widget card ids from watch urls", () => {

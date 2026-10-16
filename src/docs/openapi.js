@@ -19,7 +19,7 @@ module.exports = {
         tags: ["Home"],
         summary: "Get homepage sections",
         responses: {
-          200: { description: "Homepage sections with schedule" },
+          200: { description: "Homepage slider, sections, and schedule" },
         },
       },
     },

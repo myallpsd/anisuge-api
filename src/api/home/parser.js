@@ -18,10 +18,46 @@ function absoluteUrl(baseUrl, value) {
 function animeId(url) {
   try {
     const parts = new URL(url).pathname.split("/").filter(Boolean);
-    return parts[0] === "watch" ? parts[1] || "" : "";
+    if (parts.length === 0) return "";
+    
+    // Checks if the route is a watch page, detail page, or root/slug page
+    if (parts[0] === "watch") {
+      return parts[1] || "";
+    } else if (parts[0] === "anime" || parts.length === 1) {
+      return parts.pop() || "";
+    }
+    
+    return "";
   } catch {
     return "";
   }
+}
+
+function sliderAnimeId(url) {
+  try {
+    const parts = new URL(url).pathname.split("/").filter(Boolean);
+    return ["anime", "watch"].includes(parts[0]) ? parts[1] || "" : "";
+  } catch {
+    return "";
+  }
+}
+
+function parseSlider(baseUrl, $) {
+  return $("#slider .swiper-slide")
+    .map((_, el) => {
+      const slide = $(el);
+      const url = absoluteUrl(baseUrl, slide.attr("href") || "");
+      const style = slide.attr("style") || "";
+      const imageMatch = style.match(/background-image\s*:\s*url\(['"]?([^'")]+)['"]?\)/i);
+
+      return {
+        id: sliderAnimeId(url),
+        title: cleanText(slide.attr("title") || ""),
+        url,
+        image: absoluteUrl(baseUrl, imageMatch ? imageMatch[1] : ""),
+      };
+    })
+    .get();
 }
 
 function imageUrl(baseUrl, htmlPath, item) {
@@ -164,6 +200,7 @@ function parseHomeSections({ baseUrl, htmlPath, html }) {
 
   return {
     source: baseUrl,
+    slider: parseSlider(baseUrl, $),
     recentlyAdded: $(".hot-stat section.added .anime.mini-card > a.item")
       .map((_, el) => parseCard(baseUrl, htmlPath, $(el)))
       .get(),
