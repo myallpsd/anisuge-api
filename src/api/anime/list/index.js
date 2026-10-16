@@ -77,7 +77,7 @@ function parseEpisodeList(html, parentId = "") {
       const item = $(el);
       const slug = item.attr("data-slug") || "";
       const href = item.attr("href") || "";
-      const url = href && href !== "#" ? new URL(href, baseUrl).toString() : new URL(`/watch/${parentId}/ep-${slug}`, baseUrl).toString();
+      const url = href && href !== "#" ? new URL(href, baseUrl).toString() : new URL(`/anime/${parentId}/ep-${slug}`, baseUrl).toString();
       return {
         id: animeId(url) || parentId,
         episode: episodeNumber(url),
@@ -99,7 +99,7 @@ function parseEpisodeList(html, parentId = "") {
 }
 
 async function getAnimePage(id) {
-  const url = new URL(`/watch/${id}`, baseUrl);
+  const url = new URL(`/anime/${id}`, baseUrl);
   const response = await fetch(url, { headers: { "user-agent": "Mozilla/5.0" } });
   if (!response.ok) throw new Error(`Anime page request failed: ${response.status}`);
   return { source: url.toString(), html: await response.text() };

@@ -61,7 +61,7 @@ function parseAnimeDetail(html, id = "") {
   const data = {
     id,
     numericId: watch.attr("data-id") || "",
-    url: absoluteUrl(watch.attr("data-url") || `/watch/${id}`),
+    url: absoluteUrl(watch.attr("data-url") || `/anime/${id}`),
     poster: absoluteUrl(root.find(".poster img").attr("src")),
     name: cleanText(root.find("h1.title").text()),
     japaneseName: cleanText(root.find("h1.title").attr("data-jp") || root.find(".maindata > p").first().text()),
@@ -107,7 +107,7 @@ async function getMoreSeasons(numericId, referer) {
 router.get("/:id", async (req, res) => {
   try {
     const id = req.params.id;
-    const url = new URL(`/watch/${id}`, baseUrl);
+    const url = new URL(`/anime/${id}`, baseUrl);
     const response = await fetch(url, { headers: { "user-agent": "Mozilla/5.0" } });
     if (!response.ok) throw new Error(`Anime detail request failed: ${response.status}`);
 

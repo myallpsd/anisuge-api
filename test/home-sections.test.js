@@ -1,6 +1,9 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
+const http = require("node:http");
 const path = require("node:path");
+const app = require("../src/app");
+const { baseUrl } = require("../src/config");
 const { parseAnimeDetail, parseMoreSeasons } = require("../src/api/anime/detail");
 const { parseEpisodeList, vrf } = require("../src/api/anime/list");
 const { parseSearchItems } = require("../src/api/anime/search");
@@ -33,6 +36,43 @@ test("parses the three requested homepage sections", () => {
   assert.ok(Array.isArray(data.mostViewed.month));
   assert.ok(data.recentlyAdded.length > 0);
   assert.ok(data.justCompleted.length > 0);
+});
+
+test("serves anime detail at the documented API route", async () => {
+  const id = "ascendance-of-a-bookworm-adopted-daughter-of-an-archduke-huvyk";
+  const originalFetch = global.fetch;
+  let upstreamUrl;
+  global.fetch = async (url) => {
+    upstreamUrl = url.toString();
+    return {
+      ok: true,
+      text: async () => '<div id="media-info"><h1 class="title">Ascendance of a Bookworm</h1></div>',
+    };
+  };
+
+  const server = app.listen(0);
+  try {
+    await new Promise((resolve, reject) => {
+      server.once("error", reject);
+      server.once("listening", resolve);
+    });
+    const { port } = server.address();
+    const response = await new Promise((resolve, reject) => {
+      http.get(`http://localhost:${port}/api/anime/detail/${id}`, (res) => {
+        let body = "";
+        res.setEncoding("utf8");
+        res.on("data", (chunk) => { body += chunk; });
+        res.on("end", () => resolve({ status: res.statusCode, body }));
+      }).on("error", reject);
+    });
+
+    assert.equal(response.status, 200);
+    assert.equal(JSON.parse(response.body).data.id, id);
+    assert.equal(upstreamUrl, new URL(`/anime/${id}`, baseUrl).toString());
+  } finally {
+    global.fetch = originalFetch;
+    await new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
+  }
 });
 
 test("parses slider ids from anime URLs", () => {
@@ -124,7 +164,7 @@ test("parses episode list range links", () => {
 
   assert.equal(episodes[0].id, "love-chunibyo-other-delusions-2nd-season-heart-throb-bfx04");
   assert.equal(episodes[0].episode, "1");
-  assert.equal(episodes[0].url, "https://anisuge.tv/watch/love-chunibyo-other-delusions-2nd-season-heart-throb-bfx04/ep-1");
+  assert.equal(episodes[0].url, "https://anisuge.tv/anime/love-chunibyo-other-delusions-2nd-season-heart-throb-bfx04/ep-1");
   assert.equal(episodes[0].dataId, "12102");
   assert.equal(episodes[0].title, "Evil Lord Shingan... Reborn");
   assert.equal(episodes[0].malId, "18671");

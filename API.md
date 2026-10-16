@@ -1,6 +1,6 @@
 # AnimeSuge API
 
-Reference for the Express routes mounted by `src/app.js`. The endpoint names and response shapes below describe this repository; the [WatchHentai API README](https://github.com/senpaiorbit/watchhentai-api/blob/main/README.md) was used as a documentation-style reference, not as a source for this project's routes.
+Reference for the Express routes mounted by `src/app.js`. The endpoint names and response shapes below describe this repository; the [WatchHentai API README](https://github.com/senpaiorbit/animehentai-api/blob/main/README.md) was used as a documentation-style reference, not as a source for this project's routes.
 
 The API scrapes AnimeSuge and returns JSON. Responses reflect the upstream site at request time and may change as its markup or data changes.
 
@@ -88,7 +88,7 @@ These endpoints return `source`, `page` (string, defaults to `"1"`), and `items`
 
 All listing routes accept the optional `page` query parameter.
 
-The genre, producer, studio, and type routes also include the requested path value as a top-level `id`. The current upstream sometimes links listing cards under `/anime/...`; the listing parser only derives card IDs from `/watch/...` URLs, so a live listing item's `id` may be an empty string. The item's `url` remains available in that case.
+The genre, producer, studio, and type routes also include the requested path value as a top-level `id`. The current upstream sometimes links listing cards under `/anime/...`; the listing parser only derives card IDs from `/anime/...` URLs, so a live listing item's `id` may be an empty string. The item's `url` remains available in that case.
 
 ### Filter
 
