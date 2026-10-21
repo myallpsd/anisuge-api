@@ -46,7 +46,24 @@ test("serves anime detail at the documented API route", async () => {
     upstreamUrl = url.toString();
     return {
       ok: true,
-      text: async () => '<div id="media-info"><h1 class="title">Ascendance of a Bookworm</h1></div>',
+      text: async () => `
+        <div id="media-info"><h1 class="title">Ascendance of a Bookworm</h1></div>
+        <aside class="side-panel">
+          <h2 class="section-name">Recommended</h2>
+          <div class="anime mini-card mt-4">
+            <a class="item" href="/anime/fullmetal-alchemist-brotherhood-9s0fl">
+              <div class="poster"><img src="https://example.com/poster.jpg" alt="Fullmetal Alchemist: Brotherhood"></div>
+              <div class="detail">
+                <p class="name" data-jp="Hagane no Renkinjutsushi">Fullmetal Alchemist: Brotherhood</p>
+                <div class="meta">
+                  <span class="type">TV</span>
+                  <span class="dub-sub-total"><span class="sub">64</span><span class="dub">64</span><span class="total">64</span></span>
+                </div>
+              </div>
+            </a>
+          </div>
+        </aside>
+      `,
     };
   };
 
@@ -68,6 +85,17 @@ test("serves anime detail at the documented API route", async () => {
 
     assert.equal(response.status, 200);
     assert.equal(JSON.parse(response.body).data.id, id);
+    assert.deepEqual(JSON.parse(response.body).recommended, [{
+      id: "fullmetal-alchemist-brotherhood-9s0fl",
+      name: "Fullmetal Alchemist: Brotherhood",
+      japaneseName: "Hagane no Renkinjutsushi",
+      url: "https://anisuge.tv/anime/fullmetal-alchemist-brotherhood-9s0fl",
+      poster: "https://example.com/poster.jpg",
+      type: "TV",
+      sub: "64",
+      dub: "64",
+      total: "64",
+    }]);
     assert.equal(upstreamUrl, new URL(`/anime/${id}`, baseUrl).toString());
   } finally {
     global.fetch = originalFetch;

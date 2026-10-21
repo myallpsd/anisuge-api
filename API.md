@@ -132,13 +132,13 @@ Both return `{ "source": "...", "cachedAt": "...", "expiresAt": "...", "items": 
 | Method | Endpoint | Required input | Success response |
 | --- | --- | --- | --- |
 | GET | `/api/anime/search` | Query: `keyword` | `source`, `keyword`, `count`, `linkMore`, `items`. |
-| GET | `/api/anime/detail/:id` | Path: anime slug | `source`, `data`. |
+| GET | `/api/anime/detail/:id` | Path: anime slug | `source`, `data`, `recommended`. |
 | GET | `/api/anime/list/:id` | Path: anime slug | `source`, `episodeListSource`, `id`, `animeId`, `episodes`. |
 | GET | `/api/anime/tooltip/:id` | Path: numeric tooltip ID | `source`, `data`. |
 
 Search items include `id`, `name`, `japaneseName`, `url`, `poster`, `subtitle`, `rating`, `score`, `type`, and `aired`. Missing `keyword` on `/api/anime/search` returns HTTP `400` with `{"error":"Missing keyword query"}`.
 
-Anime detail `data` contains the parsed media information (including names, type, rating, quality, episode counts, description, and any metadata found on the page), plus `moreSeasons` and `moreSeasonsSource`.
+Anime detail `data` contains the parsed media information (including names, type, rating, quality, episode counts, description, and any metadata found on the page), plus `moreSeasons` and `moreSeasonsSource`. The top-level `recommended` array contains related anime cards with `id`, `name`, `japaneseName`, `url`, `poster`, `type`, `sub`, `dub`, and `total`.
 
 Anime list `episodes` contains the parsed episode entries: `id`, `episode`, `url`, `number`, `title`, `dataId`, `malId`, `timestamp`, `slug`, `sub`, `dub`, `ids`, `enabled`, and `active`. An anime page with no matching media ID returns HTTP `404` with `{"error":"Anime not found"}`.
 

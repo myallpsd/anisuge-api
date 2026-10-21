@@ -98,10 +98,10 @@ module.exports = {
     "/api/anime/detail/{id}": {
       get: {
         tags: ["Anime"],
-        summary: "Get anime detail from media-info",
+        summary: "Get anime detail and recommended anime",
         parameters: [{ name: "id", in: "path", required: true, schema: { type: "string", example: "chivalry-of-a-failed-knight-x7zgz" } }],
         responses: {
-          200: { description: "Anime detail data" },
+          200: { description: "Anime detail data and recommended anime cards" },
         },
       },
     },

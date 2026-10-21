@@ -54,6 +54,38 @@ function parseMoreSeasons(html) {
     .get();
 }
 
+function parseRecommended(html) {
+  const $ = cheerio.load(html);
+  const section = $(".side-panel").filter((_, el) => {
+    return cleanText($(el).find(".section-name").first().text()).toLowerCase() === "recommended";
+  }).first();
+
+  return section.find(".anime.mini-card > a.item")
+    .map((_, el) => {
+      const item = $(el);
+      const url = absoluteUrl(item.attr("href"));
+      const image = item.find(".poster img").first();
+      const name = item.find(".name").first();
+      const sub = cleanText(item.find(".dub-sub-total .sub").first().text());
+      const dub = cleanText(item.find(".dub-sub-total .dub").first().text());
+
+      return {
+        id: animeId(url),
+        name: cleanText(name.text() || image.attr("alt") || ""),
+        japaneseName: cleanText(name.attr("data-jp") || ""),
+        url,
+        poster: image.attr("data-src") || image.attr("src")
+          ? absoluteUrl(image.attr("data-src") || image.attr("src"))
+          : "",
+        type: cleanText(item.find(".meta .type").first().text()),
+        sub: sub.replace(/^.*?(\d[\d,]*)$/, "$1"),
+        dub: dub.replace(/^.*?(\d[\d,]*)$/, "$1"),
+        total: cleanText(item.find(".dub-sub-total .total").first().text()),
+      };
+    })
+    .get();
+}
+
 function parseAnimeDetail(html, id = "") {
   const $ = cheerio.load(html);
   const root = $("#media-info");
@@ -111,7 +143,9 @@ router.get("/:id", async (req, res) => {
     const response = await fetch(url, { headers: { "user-agent": "Mozilla/5.0" } });
     if (!response.ok) throw new Error(`Anime detail request failed: ${response.status}`);
 
-    const detail = parseAnimeDetail(await response.text(), id);
+    const html = await response.text();
+    const detail = parseAnimeDetail(html, id);
+    const recommended = parseRecommended(html);
     const moreSeasons = detail.numericId ? await getMoreSeasons(detail.numericId, url.toString()) : { source: "", items: [] };
     detail.moreSeasons = moreSeasons.items;
     detail.moreSeasonsSource = moreSeasons.source;
@@ -119,6 +153,7 @@ router.get("/:id", async (req, res) => {
     res.json({
       source: url.toString(),
       data: detail,
+      recommended,
     });
   } catch (error) {
     res.status(500).json({
@@ -127,4 +162,4 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-module.exports = { router, parseAnimeDetail, parseMoreSeasons };
+module.exports = { router, parseAnimeDetail, parseMoreSeasons, parseRecommended };
