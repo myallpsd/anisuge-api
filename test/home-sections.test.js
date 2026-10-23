@@ -13,7 +13,7 @@ const { parseHomeSections, parseSchedule, parseWidgetItems } = require("../src/a
 const { parseMenuLinks } = require("../src/api/menu/shared");
 const { pagePath } = require("../src/api/page/shared");
 const { parseServerList } = require("../src/api/server/list");
-const { fileIdFromHtml } = require("../src/api/server/sources");
+const { fileIdFromHtml, getSources } = require("../src/api/server/sources");
 
 test("parses the three requested homepage sections", () => {
   const data = parseHomeSections({
@@ -219,6 +219,66 @@ test("parses server list groups", () => {
 
 test("finds megaplay file id from stream page title", () => {
   assert.equal(fileIdFromHtml("<title>File 106302 - MegaPlay</title>"), "106302");
+  assert.equal(fileIdFromHtml('<div data-id="973388"></div>'), "973388");
+});
+
+test("fetches the Megaplay stream page and extracts its data-id", async () => {
+  const streamUrl = "https://megaplay.buzz/stream/s-2/973388/sub??autostart=true";
+  const originalFetch = global.fetch;
+  const originalLog = console.log;
+  const requests = [];
+  global.fetch = async (url, options) => {
+    requests.push({ url: url.toString(), options });
+    return {
+      ok: true,
+      text: async () => requests.length === 1
+        ? '<div class="player" data-id="973388"></div>'
+        : JSON.stringify({ sources: [] }),
+    };
+  };
+  console.log = () => {};
+
+  try {
+    const result = await getSources({ streamUrl });
+    assert.equal(requests.length, 2);
+    assert.equal(requests[0].url, streamUrl);
+    assert.equal(requests[0].options.headers.referer, "https://anisuge.tv/");
+    assert.equal(requests[1].url, "https://megaplay.buzz/stream/getSources?id=973388");
+    assert.equal(result.fileId, "973388");
+  } finally {
+    global.fetch = originalFetch;
+    console.log = originalLog;
+  }
+});
+
+test("forwards an explicitly supplied Megaplay file id", async () => {
+  const streamUrl = "https://megaplay.buzz/stream/s-2/973388/sub??autostart=true";
+  const originalFetch = global.fetch;
+  const originalLog = console.log;
+  let fetchCount = 0;
+  let requestUrl;
+  let requestOptions;
+  global.fetch = async (url, options) => {
+    fetchCount += 1;
+    requestUrl = url;
+    requestOptions = options;
+    return {
+      ok: true,
+      text: async () => JSON.stringify({ sources: [] }),
+    };
+  };
+  console.log = () => {};
+
+  try {
+    const result = await getSources({ id: "973388", streamUrl });
+    assert.equal(fetchCount, 1);
+    assert.equal(requestUrl, "https://megaplay.buzz/stream/getSources?id=973388");
+    assert.equal(requestOptions.headers["X-Requested-With"], "XMLHttpRequest");
+    assert.equal(result.fileId, "973388");
+  } finally {
+    global.fetch = originalFetch;
+    console.log = originalLog;
+  }
 });
 
 test("parses anime tooltip data", () => {

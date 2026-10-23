@@ -22,4 +22,8 @@ module.exports = {
   port: Number(process.env.PORT || 3000),
   baseUrl: process.env.BASE_URL || "https://anisuge.tv/home",
   htmlPath: process.env.SOURCE_HTML,
+  enc_key: process.env.ENC_KEY || "i?LMTAx0Q6,:}50U",
+  enc_iv: process.env.DOMAINS_ENC_IV || "W0;27ToaUpl_P%'c",
+  enc_key_size: Number.parseInt(process.env.ENC_KEY_SIZE, 10) || 32,
+  enc_iv_size: Number.parseInt(process.env.DOMAINS_ENC_IV_SIZE, 10) || 16,
 };

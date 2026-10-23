@@ -1,9 +1,13 @@
 const express = require("express");
-
 const router = express.Router();
+const { decryptDomainsPayload } = require("./decrypt");
 
 function fileIdFromHtml(html) {
-  return html.match(/<title>\s*File\s+(\d+)\s+-\s+MegaPlay\s*<\/title>/i)?.[1] || "";
+  return (
+    html.match(/\bdata-id=["'](\d+)["']/i)?.[1] ||
+    html.match(/<title>\s*File\s+(\d+)\s+-\s+MegaPlay\s*<\/title>/i)?.[1] ||
+    ""
+  );
 }
 
 async function getSources({ id, streamUrl }) {
@@ -21,20 +25,45 @@ async function getSources({ id, streamUrl }) {
   }
 
   const sourceUrl = new URL("/stream/getSources", "https://megaplay.buzz");
-  sourceUrl.searchParams.append("id", id);
-  sourceUrl.searchParams.append("id", id);
+  sourceUrl.searchParams.set("id", id);
 
   const s = streamUrl ? new URL(streamUrl).searchParams.get("s") : "";
   if (s) sourceUrl.searchParams.set("s", s);
 
-  const response = await fetch(sourceUrl, {
+  const response = await fetch(sourceUrl.toString(), {
     headers: {
-      referer: streamUrl || "https://megaplay.buzz/",
-      "user-agent": "Mozilla/5.0",
+      Referer: streamUrl || "https://megaplay.buzz/",
+      "User-Agent": "Mozilla/5.0",
+      "X-Requested-With": "XMLHttpRequest",
     },
   });
-  if (!response.ok) throw new Error(`Sources request failed: ${response.status}`);
-  return { source: sourceUrl.toString(), fileId: id, result: await response.json() };
+
+  const responseBody = await response.text();
+  if (!response.ok) {
+    throw new Error(`Sources request failed: ${response.status}`);
+  }
+
+  // 1. Parse responseBody JSON
+  const parsedData = JSON.parse(responseBody);
+
+  // 2. Decrypt `enc` (or `sources` if `sources` is an encrypted string) into decodedData
+  const encryptedPayload =
+    parsedData.enc ||
+    (typeof parsedData.sources === "string" ? parsedData.sources : null);
+
+  const decodedData = encryptedPayload
+    ? decryptDomainsPayload(encryptedPayload)
+    : null;
+    
+
+  parsedData.decodedData = decodedData;
+
+  // 3. Return parsedData (which now contains decodedData inside it)
+  return {
+    source: sourceUrl.toString(),
+    fileId: id,
+    result: parsedData,
+  };
 }
 
 router.get("/", async (req, res) => {
@@ -51,4 +80,4 @@ router.get("/", async (req, res) => {
   }
 });
 
-module.exports = { router, fileIdFromHtml };
+module.exports = { router, fileIdFromHtml, getSources };
