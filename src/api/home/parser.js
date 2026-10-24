@@ -33,7 +33,7 @@ function animeId(url) {
   }
 }
 
-function sliderAnimeId(url) {
+function linkedAnimeId(url) {
   try {
     const parts = new URL(url).pathname.split("/").filter(Boolean);
     return ["anime", "watch"].includes(parts[0]) ? parts[1] || "" : "";
@@ -51,7 +51,7 @@ function parseSlider(baseUrl, $) {
       const imageMatch = style.match(/background-image\s*:\s*url\(['"]?([^'")]+)['"]?\)/i);
 
       return {
-        id: sliderAnimeId(url),
+        id: linkedAnimeId(url),
         title: cleanText(slide.attr("title") || ""),
         url,
         image: absoluteUrl(baseUrl, imageMatch ? imageMatch[1] : ""),
@@ -101,6 +101,7 @@ function parseWidgetCard(baseUrl, item) {
 
   return {
     id: animeId(url),
+    anime: linkedAnimeId(url),
     name: cleanText(nameLink.text()),
     japaneseName: cleanText(nameLink.attr("data-jp") || ""),
     url,

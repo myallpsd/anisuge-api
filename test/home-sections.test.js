@@ -147,8 +147,36 @@ test("parses widget card ids from watch urls", () => {
   });
 
   assert.equal(items[0].id, "boku-no-hero-academia-i-am-a-hero-too-dwoba");
+  assert.equal(items[0].anime, "boku-no-hero-academia-i-am-a-hero-too-dwoba");
   assert.equal(items[0].name, "Boku no Hero Academia");
   assert.equal(items[0].url, "https://anisuge.tv/watch/boku-no-hero-academia-i-am-a-hero-too-dwoba/ep-2");
+});
+
+test("includes the anime slug separately from the episode id in widget items", () => {
+  const items = parseWidgetItems({
+    baseUrl: "https://anisuge.tv/home",
+    html: `
+      <div class="anime main-card">
+        <div class="item">
+          <a class="poster" href="/anime/horror-collector-tiujt/ep-3">
+            <img src="https://example.com/poster.jpg">
+          </a>
+          <div class="item-status"><span class="type">TV</span></div>
+          <div class="dub-sub-total">
+            <span class="sub">3</span><span class="dub">1</span><span class="total">12</span>
+          </div>
+          <div class="name">
+            <a href="/anime/horror-collector-tiujt/ep-3" data-jp="Kyoufu Collector">
+              Horror Collector
+            </a>
+          </div>
+        </div>
+      </div>
+    `,
+  });
+
+  assert.equal(items[0].id, "ep-3");
+  assert.equal(items[0].anime, "horror-collector-tiujt");
 });
 
 test("parses schedule section items", () => {
